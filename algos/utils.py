@@ -7,7 +7,7 @@ def swap_endian_word(hex_word):
     message = unhexlify(hex_word)
     if len(message) != 4:
         raise ValueError('Must be 4-byte word')
-    return message[::-1]
+    return str(message[::-1])
 
 
 def swap_endian_words(hex_words):
@@ -16,6 +16,7 @@ def swap_endian_words(hex_words):
     message = unhexlify(hex_words)
     if len(message) % 4 != 0:
         raise ValueError('Must be 4-byte word aligned')
+    message = str(message)
     return ''.join([message[4 * i: 4 * i + 4][::-1] for i in range(0, len(message) // 4)])
 
 

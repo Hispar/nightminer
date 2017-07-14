@@ -1,16 +1,14 @@
 # Subscription state
-import json
 import time
 
 import struct
+import urllib
 from binascii import hexlify, unhexlify
 
-import logging
-
-from algos.script import scrypt_proof_of_work, SCRYPT_LIBRARY
+from algos.script import scrypt_proof_of_work
 from algos.sha256d import sha256d
 from algos.utils import swap_endian_word, swap_endian_words
-from nightminer.constants import ALGORITHM_SCRYPT, ALGORITHM_SHA256D, LEVEL_DEBUG
+from nightminer.constants import ALGORITHM_SCRYPT, ALGORITHM_SHA256D
 
 
 class Job(object):
@@ -81,7 +79,7 @@ class Job(object):
         merkle_root = coinbase_hash_bin
         for branch in self._merkle_branches:
             merkle_root = sha256d(merkle_root + unhexlify(branch))
-        return merkle_root
+        return str(merkle_root)
 
     def stop(self):
         """Requests the mine coroutine stop after its current iteration."""
@@ -120,7 +118,13 @@ class Job(object):
 
                 # Proof-of-work attempt
                 nounce_bin = struct.pack('<I', nounce)
-                pow = self.proof_of_work(header_prefix_bin + nounce_bin)[::-1].encode('hex')
+
+                pow = self.proof_of_work(header_prefix_bin + str(nounce_bin))[::-1]
+
+                # pow2 = pow[:-2]
+                # print(pow, pow2)
+                pow = ''.join(hex(ord(c))[2:] for c in pow)
+                print(pow, self.target)
 
                 # Did we reach or exceed our target?
                 if pow <= self.target:

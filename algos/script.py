@@ -79,8 +79,7 @@ def scrypt(password, salt, N, r, p, dkLen):
 
         def f(block_number):
             """The function "f"."""
-
-            U = prf(passphrase, salt + struct.pack('>L', block_number))
+            U = prf(passphrase, str(salt + str(struct.pack('>L', block_number))).encode('utf-8'))
 
             # Not used for scrpyt-based coins, could be removed, but part of a more general solution
             if count > 1:
@@ -89,7 +88,7 @@ def scrypt(password, salt, N, r, p, dkLen):
                     blockxor(prf(passphrase, ''.join(U)), 0, U, 0, len(U))
                 U = ''.join(U)
 
-            return U
+            return str(U)
 
         # PBKDF2 implementation
         size = 0
@@ -216,7 +215,11 @@ def scrypt(password, salt, N, r, p, dkLen):
     # Scrypt implementation. Significant thanks to https://github.com/wg/scrypt
     if N < 2 or (N & (N - 1)): raise ValueError('Scrypt N must be a power of 2 greater than 1')
 
-    prf = lambda k, m: hmac.new(key=k, msg=m, digestmod=hashlib.sha256).digest()
+    prf = lambda k, m: hmac.new(key=k.encode('utf-8'), msg=m, digestmod=hashlib.sha256).digest()
+
+    # pw_bytes = pw.encode('utf-8')
+    # salt_bytes = salt.encode('utf-8')
+    # return hashlib.sha256(pw_bytes + salt_bytes).hexdigest() + "," + salt
 
     DK = [chr(0)] * dkLen
 
