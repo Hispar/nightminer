@@ -1,1 +1,6 @@
 .idea
+*.log
+algos/__pycache__/
+miner.log
+nightminer/__pycache__/
+nightminer/tests/__pycache__/

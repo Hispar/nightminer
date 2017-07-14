@@ -2,8 +2,6 @@ import json
 import threading
 import logging
 
-from nightminer.constants import LEVEL_ERROR, LEVEL_PROTOCOL
-
 
 class SimpleJsonRpcClient(object):
     """Simple JSON-RPC client.
@@ -50,16 +48,16 @@ class SimpleJsonRpcClient(object):
                 (line, data) = data.split('\n', 1)
             else:
                 chunk = self._socket.recv(1024)
-                data += chunk
+                data += str(chunk)
                 continue
 
-            logging.info('JSON-RPC Server > ' + line, LEVEL_PROTOCOL)
+            logging.info('JSON-RPC Server > ' + line)
 
             # Parse the JSON
             try:
                 reply = json.loads(line)
             except Exception as e:
-                logging.error("JSON-RPC Error: Failed to parse JSON %r (skipping)" % line, LEVEL_ERROR)
+                logging.error("JSON-RPC Error: Failed to parse JSON %r (skipping)" % line)
                 continue
 
             try:
@@ -73,7 +71,7 @@ class SimpleJsonRpcClient(object):
                 if e.request:
                     output += '\n  ' + e.request
                 output += '\n  ' + e.reply
-                logging.error(output, LEVEL_ERROR)
+                logging.error(output)
 
     def handle_reply(self, request, reply):
         # Override this method in sub-classes to handle a message from the server
@@ -87,12 +85,13 @@ class SimpleJsonRpcClient(object):
 
         request = dict(id=self._message_id, method=method, params=params)
         message = json.dumps(request)
+
         with self._lock:
             self._requests[self._message_id] = request
             self._message_id += 1
-            self._socket.send(message + '\n')
+            self._socket.send((message + '\n').encode())
 
-        logging.info('JSON-RPC Server < ' + message, LEVEL_PROTOCOL)
+        logging.info('JSON-RPC Server < ' + message)
 
         return request
 

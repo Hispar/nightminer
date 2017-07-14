@@ -2,7 +2,6 @@
 import time
 
 import struct
-import urllib
 from binascii import hexlify, unhexlify
 
 from algos.script import scrypt_proof_of_work

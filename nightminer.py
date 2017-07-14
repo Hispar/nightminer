@@ -51,6 +51,8 @@ import argparse
 from nightminer.miner import Miner
 from nightminer.tests.test_subscription import test_subscription
 
+logging.basicConfig(filename='miner.log', level=logging.DEBUG)
+
 if __name__ == '__main__':
 
     # Parse the command line
@@ -117,7 +119,7 @@ if __name__ == '__main__':
         # Set us to a faster library if available
         set_scrypt_library()
         if options.algo == ALGORITHM_SCRYPT:
-            logging.debug('Using scrypt library %r' % SCRYPT_LIBRARY, LEVEL_DEBUG)
+            logging.debug('Using scrypt library %r' % SCRYPT_LIBRARY)
 
     # The want a daemon, give them a daemon
     if options.background:
@@ -128,5 +130,6 @@ if __name__ == '__main__':
 
     # Heigh-ho, heigh-ho, it's off to work we go...
     if options.url:
+        logging.info('start miner')
         miner = Miner(options.url, username, password, algorithm=options.algo)
         miner.serve_forever()

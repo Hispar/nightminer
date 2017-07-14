@@ -8,7 +8,7 @@ from urllib import parse
 
 from algos.utils import human_readable_hashrate
 from nightminer.client import SimpleJsonRpcClient
-from nightminer.constants import ALGORITHM_SCRYPT, VERSION, USER_AGENT, LEVEL_DEBUG, LEVEL_INFO, LEVEL_ERROR
+from nightminer.constants import ALGORITHM_SCRYPT, VERSION, USER_AGENT
 from nightminer.subscription import SubscriptionByAlgorithm
 
 
@@ -43,6 +43,7 @@ class Miner(SimpleJsonRpcClient):
     # Overridden from SimpleJsonRpcClient
     def handle_reply(self, request, reply):
 
+        print(request, reply)
         # New work, stop what we were doing before, and start on this.
         if reply.get('method') == 'mining.notify':
             if 'params' not in reply or len(reply['params']) != 9:
@@ -51,7 +52,7 @@ class Miner(SimpleJsonRpcClient):
             (job_id, prevhash, coinb1, coinb2, merkle_branches, version, nbits, ntime, clean_jobs) = reply['params']
             self._spawn_job_thread(job_id, prevhash, coinb1, coinb2, merkle_branches, version, nbits, ntime)
 
-            logging.debug('New job: job_id=%s' % job_id, LEVEL_DEBUG)
+            logging.debug('New job: job_id=%s' % job_id)
 
         # The server wants us to change our difficulty (on all *future* work)
         elif reply.get('method') == 'mining.set_difficulty':
@@ -61,7 +62,7 @@ class Miner(SimpleJsonRpcClient):
             (difficulty,) = reply['params']
             self._subscription.set_difficulty(difficulty)
 
-            logging.debug('Change difficulty: difficulty=%s' % difficulty, LEVEL_DEBUG)
+            logging.debug('Change difficulty: difficulty=%s' % difficulty)
 
         # This is a reply to...
         elif request:
@@ -75,7 +76,7 @@ class Miner(SimpleJsonRpcClient):
 
                 self._subscription.set_subscription(subscription_id, extranounce1, extranounce2_size)
 
-                logging.debug('Subscribed: subscription_id=%s' % subscription_id, LEVEL_DEBUG)
+                logging.debug('Subscribed: subscription_id=%s' % subscription_id)
 
                 # Request authentication
                 self.send(method='mining.authorize', params=[self.username, self.password])
@@ -88,16 +89,16 @@ class Miner(SimpleJsonRpcClient):
                 worker_name = request['params'][0]
                 self._subscription.set_worker_name(worker_name)
 
-                logging.debug('Authorized: worker_name=%s' % worker_name, LEVEL_DEBUG)
+                logging.debug('Authorized: worker_name=%s' % worker_name)
 
             # ...submit; complain if the server didn't accept our submission
             elif request.get('method') == 'mining.submit':
                 if 'result' not in reply or not reply['result']:
-                    logging.info('Share - Invalid', LEVEL_INFO)
+                    logging.info('Share - Invalid')
                     raise self.MinerWarning('Failed to accept submit', reply, request)
 
                 self._accepted_shares += 1
-                logging.info('Accepted shares: %d' % self._accepted_shares, LEVEL_INFO)
+                logging.info('Accepted shares: %d' % self._accepted_shares)
 
             # ??? *shrug*
             else:
@@ -132,10 +133,10 @@ class Miner(SimpleJsonRpcClient):
                     params = [self._subscription.worker_name] + [result[k] for k in
                                                                  ('job_id', 'extranounce2', 'ntime', 'nounce')]
                     self.send(method='mining.submit', params=params)
-                    logging.info("Found share: " + str(params), LEVEL_INFO)
-                logging.info("Hashrate: %s" % human_readable_hashrate(job.hashrate), LEVEL_INFO)
+                    logging.info("Found share: " + str(params))
+                logging.info("Hashrate: %s" % human_readable_hashrate(job.hashrate))
             except Exception as e:
-                logging.error("ERROR: %s" % e, LEVEL_ERROR)
+                logging.error("ERROR: %s" % e)
 
         thread = threading.Thread(target=run, args=(self._job,))
         thread.daemon = True
@@ -149,7 +150,7 @@ class Miner(SimpleJsonRpcClient):
         hostname = url.hostname or ''
         port = url.port or 9333
 
-        logging.info('Starting server on %s:%d' % (hostname, port), LEVEL_INFO)
+        logging.info('Starting server on %s:%d' % (hostname, port))
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((hostname, port))
