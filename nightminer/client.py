@@ -48,7 +48,7 @@ class SimpleJsonRpcClient(object):
                 (line, data) = data.split('\n', 1)
             else:
                 chunk = self._socket.recv(1024)
-                data += str(chunk)
+                data += chunk.decode('utf-8')
                 continue
 
             logging.info('JSON-RPC Server > ' + line)

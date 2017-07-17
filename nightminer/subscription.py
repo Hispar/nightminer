@@ -120,9 +120,8 @@ class Job(object):
 
                 pow = self.proof_of_work(header_prefix_bin + str(nounce_bin))[::-1]
 
-                # pow2 = pow[:-2]
-                # print(pow, pow2)
                 pow = ''.join(hex(ord(c))[2:] for c in pow)
+
                 print(pow, self.target)
 
                 # Did we reach or exceed our target?
